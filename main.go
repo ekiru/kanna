@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"kanna/routes"
+	"github.com/ekiru/kanna/routes"
 )
 
 func main() {

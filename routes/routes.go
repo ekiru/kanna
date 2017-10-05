@@ -3,7 +3,7 @@ package routes
 import (
 	"net/http"
 
-	"kanna/pages"
+	"github.com/ekiru/kanna/pages"
 )
 
 func Routes() http.Handler {
