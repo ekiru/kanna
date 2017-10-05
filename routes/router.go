@@ -6,16 +6,17 @@ import (
 	"strings"
 )
 
-type router struct {
+type Router struct {
 	routes       []*route
 	notFound     http.Handler
 	errorHandler http.Handler
 }
 
+// TODO define accessor functions for the context keys for these
 type Param string
 type Rest string
 
-func (router *router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (router *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if err := recover(); err != nil {
 			r = r.WithContext(
@@ -34,7 +35,7 @@ func (router *router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	router.notFound.ServeHTTP(w, r)
 }
 
-func (router *router) Route(pattern []interface{}, handler http.Handler) {
+func (router *Router) Route(pattern []interface{}, handler http.Handler) {
 	// Validate the pattern
 	seenRest := false
 	for _, component := range pattern {
@@ -56,11 +57,11 @@ func (router *router) Route(pattern []interface{}, handler http.Handler) {
 	})
 }
 
-func (router *router) NotFound(handler http.Handler) {
+func (router *Router) NotFound(handler http.Handler) {
 	router.notFound = handler
 }
 
-func (router *router) Error(handler http.Handler) {
+func (router *Router) Error(handler http.Handler) {
 	router.errorHandler = handler
 }
 
