@@ -1,7 +1,6 @@
 package views
 
 import (
-	"io"
 	"net/http"
 )
 
@@ -15,7 +14,11 @@ func Html(doc string) http.Handler {
 	}
 }
 
-func (view *htmlView) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func sendHtml(w http.ResponseWriter, buf []byte) {
 	w.Header().Set("Content-Type", "text/html")
-	io.WriteString(w, view.content)
+	w.Write(buf)
+}
+
+func (view *htmlView) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	sendHtml(w, []byte(view.content))
 }
