@@ -1,7 +1,13 @@
 package main
 
-import "fmt"
+import (
+	"log"
+	"net/http"
+
+	"kanna/routes"
+)
 
 func main() {
-	fmt.Println("hello, world")
+	routes := routes.Routes()
+	log.Fatal(http.ListenAndServe(":9123", routes))
 }
