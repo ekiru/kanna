@@ -1,6 +1,12 @@
 package actors
 
-import "net/url"
+import (
+	"context"
+	"database/sql"
+	"net/url"
+
+	"github.com/ekiru/kanna/db"
+)
 
 type Model struct {
 	Inbox  *url.URL `json:"inbox"`
@@ -23,15 +29,38 @@ func init() {
 	}
 }
 
-func ById(id string) (bool, *Model) {
-	if id == "http://kanna.example/actor/srn" {
-		return true, &Model{
-			Inbox:  exampleInbox,
-			Outbox: exampleOutbox,
-			Name:   "Surinna",
-			Type:   "Person",
-		}
-	} else {
-		return false, nil
+func (m *Model) FromRow(rows *sql.Rows) error {
+	var inbox, outbox string
+	err := db.FromRow(rows, map[string]interface{}{
+		"inbox":  &inbox,
+		"outbox": &outbox,
+		"name":   &m.Name,
+		"type":   &m.Type,
+	})
+	if err != nil {
+		return err
 	}
+	if m.Inbox, err = url.Parse(inbox); err != nil {
+		return err
+	}
+	if m.Outbox, err = url.Parse(outbox); err != nil {
+		return err
+	}
+	return nil
+}
+
+func ById(ctx context.Context, id string) (bool, *Model) {
+	var model Model
+	rows, err := db.DB(ctx).QueryContext(ctx, "select type, name, inbox, outbox from Accounts where id = ?", id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	if !rows.Next() {
+		return nil, sql.ErrNoRows
+	}
+	if err = m.FromRow(rows); err != nil {
+		return nil, err
+	}
+	return m
 }
