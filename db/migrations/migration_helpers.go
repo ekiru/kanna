@@ -1,3 +1,5 @@
+// The migrations package defines several types implementing the
+// db.Migration interface.
 package migrations
 
 import (
