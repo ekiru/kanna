@@ -53,12 +53,9 @@ func ApplyMigration(db *sql.DB, mi Migration) (err error) {
 			err = tx.Commit()
 		}
 	}()
-	row := tx.QueryRow("select count(*) from Migrations where id = ?", mi.ID())
-	var alreadyApplied int64
-	if err = row.Scan(&alreadyApplied); err != nil {
+	if alreadyApplied, err := wasMigrationApplied(tx, mi); err != nil {
 		return err
-	}
-	if alreadyApplied != 0 {
+	} else if alreadyApplied {
 		return nil
 	}
 	mi.Up(MigrationTx{tx})
@@ -74,7 +71,6 @@ func ApplyMigration(db *sql.DB, mi Migration) (err error) {
 // transaction. The changes will only be performed if the migration has
 // previously been applied.
 func UndoMigration(db *sql.DB, mi Migration) (err error) {
-	// TODO check the migration is already there
 	var tx *sql.Tx
 	tx, err = db.Begin()
 	if err != nil {
@@ -90,10 +86,24 @@ func UndoMigration(db *sql.DB, mi Migration) (err error) {
 			err = tx.Commit()
 		}
 	}()
+	if alreadyApplied, err := wasMigrationApplied(tx, mi); err != nil {
+		return err
+	} else if !alreadyApplied {
+		return nil
+	}
 	mi.Down(MigrationTx{tx})
 	_, err = tx.Exec("delete from Migrations where id = ?", mi.ID())
 	if err != nil {
 		return nil
 	}
 	return
+}
+
+func wasMigrationApplied(tx *sql.Tx, mi Migration) (bool, error) {
+	row := tx.QueryRow("select count(*) from Migrations where id = ?", mi.ID())
+	var alreadyApplied int64
+	if err := row.Scan(&alreadyApplied); err != nil {
+		return false, err
+	}
+	return alreadyApplied != 0, nil
 }
