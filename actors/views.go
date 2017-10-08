@@ -9,6 +9,7 @@ import (
 	"github.com/ekiru/kanna/views"
 )
 
+// AddRoutes registers the routes related to actors on the Router.
 func AddRoutes(router *routes.Router) {
 	router.Route([]interface{}{"actor", routes.Param("actor")}, http.HandlerFunc(showActor))
 }

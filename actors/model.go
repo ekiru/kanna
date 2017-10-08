@@ -1,3 +1,5 @@
+// The actors package defines request handlers and database helpers for
+// retrieving and modifying information about ActivityPub Actors.
 package actors
 
 import (
@@ -8,12 +10,25 @@ import (
 	"github.com/ekiru/kanna/db"
 )
 
+// actors.Model represents an Actor, either on this server or elsewhere.
 type Model struct {
-	Inbox  *url.URL `json:"inbox"`
+	// Inbox is the URL of the Actor's inbox, to which Activities
+	// can be posted to deliver them to the Actor and from which the
+	// Actor can read those Activities.
+	Inbox *url.URL `json:"inbox"`
+	// Outbox is the URL of the Actor's outbox, to which the Actor
+	// can post Activities to deliver them to other Actors and from
+	// which other Actors can read (some) of the Activities the
+	// Actor has posted.
 	Outbox *url.URL `json:"outbox"`
-	Name   string   `json:"name"`
-	Type   string   `json:"type"`
-	ID     string   `json:"id"`
+	// Name is a "simple, human-readable, plain-text name for the"
+	// Actor.
+	Name string `json:"name"`
+	// Type represents the type of Actor; common values include
+	// Person, Group, Organization, and Application.
+	Type string `json:"type"`
+	// ID is the URL which uniquely identifies the Actor.
+	ID string `json:"id"`
 }
 
 var exampleInbox, exampleOutbox *url.URL
@@ -30,6 +45,8 @@ func init() {
 	}
 }
 
+// FromRow fills a Model with the data from a row returned by a
+// database query from the Actors table.
 func (m *Model) FromRow(rows *sql.Rows) error {
 	var inbox, outbox string
 	err := db.FromRow(rows, map[string]interface{}{
@@ -51,6 +68,9 @@ func (m *Model) FromRow(rows *sql.Rows) error {
 	return nil
 }
 
+// ById retrieves an actor.Model from the database with the specified
+// ID if they exist. If no such Actor exists, database/sql.ErrNoRows
+// will be returned as the error. Other errors may be returned.
 func ById(ctx context.Context, id string) (*Model, error) {
 	var model Model
 	rows, err := db.DB(ctx).QueryContext(ctx, "select id, type, name, inbox, outbox from Actors where id = ?", id)
