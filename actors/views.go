@@ -30,10 +30,12 @@ func showActor(w http.ResponseWriter, r *http.Request) {
 	}
 	actorKey := r.Context().Value(routes.Param("actor")).(string)
 	actorId := fmt.Sprintf("http://kanna.example/actor/%s", actorKey)
-	if ok, actor := ById(actorId); ok {
+	if actor, err := ById(r.Context(), actorId); err == nil {
 		showActorTemplate.Render(w, r, data{Actor: actor})
 	} else {
 		// TODO expose a way to serve a NotFound via the Router at this point
+		// TODO expose a way to serve an error
+		// TODO distinguish not found from other errors
 		pages.NotFound.ServeHTTP(w, r)
 	}
 }

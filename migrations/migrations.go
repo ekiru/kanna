@@ -33,10 +33,15 @@ func Migrations() []db.Migration {
 		migrations.CreateTable("0001-create-actors",
 			"Actors",
 			migrations.Column{
-				Name:       "name",
+				Name:       "id",
 				Type:       migrations.String,
 				PrimaryKey: true,
 				NotNull:    true,
+			},
+			migrations.Column{
+				Name:    "name",
+				Type:    migrations.String,
+				NotNull: true,
 			},
 			migrations.Column{
 				Name:    "type",
@@ -54,5 +59,17 @@ func Migrations() []db.Migration {
 				NotNull: true,
 			},
 		),
+		migrations.FreeForm{
+			Identifier: "0002-create-example-actor",
+			Upward: func(tx db.MigrationTx) {
+				tx.Exec("insert into Actors (id, name, type, inbox, outbox) values (?, ?, ?, ?, ?)",
+					"http://kanna.example/actor/srn", "srn", "Person",
+					"http://kanna.example/actor/srn/inbox", "http://kanna.example/actor/srn/outbox",
+				)
+			},
+			Downward: func(tx db.MigrationTx) {
+				tx.Exec("delete Actors where name = ?", "srn")
+			},
+		},
 	}
 }

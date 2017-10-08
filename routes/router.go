@@ -10,6 +10,11 @@ type Router struct {
 	routes       []*route
 	notFound     http.Handler
 	errorHandler http.Handler
+	baseParams   []baseParam
+}
+
+type baseParam struct {
+	key, value interface{}
 }
 
 // TODO define accessor functions for the context keys for these
@@ -27,12 +32,21 @@ func (router *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}()
 	var ok bool
 	for _, route := range router.routes {
+		ctx := r.Context()
+		for _, param := range router.baseParams {
+			ctx = context.WithValue(ctx, param.key, param.value)
+		}
+		r = r.WithContext(ctx)
 		if ok, r = route.Match(r); ok {
 			route.ServeHTTP(w, r)
 			return
 		}
 	}
 	router.notFound.ServeHTTP(w, r)
+}
+
+func (router *Router) BaseParam(param interface{}, value interface{}) {
+	router.baseParams = append(router.baseParams, baseParam{param, value})
 }
 
 func (router *Router) Route(pattern []interface{}, handler http.Handler) {

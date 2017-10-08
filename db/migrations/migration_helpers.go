@@ -101,3 +101,19 @@ func (mi *createTable) Up(tx db.MigrationTx) {
 func (mi *createTable) Down(tx db.MigrationTx) {
 	tx.Exec(fmt.Sprintf("drop table %s", mi.name))
 }
+
+type FreeForm struct {
+	Identifier       string
+	Upward, Downward func(tx db.MigrationTx)
+}
+
+func (mi FreeForm) ID() string {
+	return mi.Identifier
+}
+func (mi FreeForm) Up(tx db.MigrationTx) {
+	mi.Upward(tx)
+}
+
+func (mi FreeForm) Down(tx db.MigrationTx) {
+	mi.Downward(tx)
+}

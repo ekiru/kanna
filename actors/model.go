@@ -49,9 +49,9 @@ func (m *Model) FromRow(rows *sql.Rows) error {
 	return nil
 }
 
-func ById(ctx context.Context, id string) (bool, *Model) {
+func ById(ctx context.Context, id string) (*Model, error) {
 	var model Model
-	rows, err := db.DB(ctx).QueryContext(ctx, "select type, name, inbox, outbox from Accounts where id = ?", id)
+	rows, err := db.DB(ctx).QueryContext(ctx, "select type, name, inbox, outbox from Actors where id = ?", id)
 	if err != nil {
 		return nil, err
 	}
@@ -59,8 +59,8 @@ func ById(ctx context.Context, id string) (bool, *Model) {
 	if !rows.Next() {
 		return nil, sql.ErrNoRows
 	}
-	if err = m.FromRow(rows); err != nil {
+	if err = model.FromRow(rows); err != nil {
 		return nil, err
 	}
-	return m
+	return &model, nil
 }
