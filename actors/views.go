@@ -14,8 +14,8 @@ func AddRoutes(router *routes.Router) {
 }
 
 var showActorTemplate = views.ParseHtmlTemplate(`<!doctype html>
-<title>Kanna - {{.Actor.Name}}</title>
-<h1>The {{.Actor.Type}} named {{.Actor.Name}}</h1>
+<title>Kanna - {{.Actor.Name}} ({{.Actor.ID}}</title>
+<h1>The {{.Actor.Type}} named <a href={{.Actor.ID}}>{{.Actor.Name}}</a></h1>
 
 <nav>
 	<ul>

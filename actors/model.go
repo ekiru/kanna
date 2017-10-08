@@ -13,6 +13,7 @@ type Model struct {
 	Outbox *url.URL `json:"outbox"`
 	Name   string   `json:"name"`
 	Type   string   `json:"type"`
+	ID     string   `json:"id"`
 }
 
 var exampleInbox, exampleOutbox *url.URL
@@ -36,6 +37,7 @@ func (m *Model) FromRow(rows *sql.Rows) error {
 		"outbox": &outbox,
 		"name":   &m.Name,
 		"type":   &m.Type,
+		"id":     &m.ID,
 	})
 	if err != nil {
 		return err
@@ -51,7 +53,7 @@ func (m *Model) FromRow(rows *sql.Rows) error {
 
 func ById(ctx context.Context, id string) (*Model, error) {
 	var model Model
-	rows, err := db.DB(ctx).QueryContext(ctx, "select type, name, inbox, outbox from Actors where id = ?", id)
+	rows, err := db.DB(ctx).QueryContext(ctx, "select id, type, name, inbox, outbox from Actors where id = ?", id)
 	if err != nil {
 		return nil, err
 	}
