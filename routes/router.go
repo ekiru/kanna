@@ -1,3 +1,6 @@
+// The routes package defines the routing system and interface that
+// the rest of Kanna uses to route requests to different endpoints
+// and parse parameters out of request paths.
 package routes
 
 import (
@@ -6,6 +9,10 @@ import (
 	"strings"
 )
 
+// A Router multiplexes HTTP requests similar to the net/http package's
+// ServeMux, but with more flexible patterns that allow conveniently
+// parsing dynamic components out of request paths as well as
+// automating some other details.
 type Router struct {
 	routes       []*route
 	notFound     http.Handler
@@ -17,10 +24,34 @@ type baseParam struct {
 	key, value interface{}
 }
 
+// A Param matches any path component in a URL pattern and stores the
+// matched path component in the request context. The matched portion
+// of the path is stored within the context with the Param value for
+// the parameter name as the key. The value stored in the context will
+// always be a string.
+//
 // TODO define accessor functions for the context keys for these
 type Param string
+
+// A Rest parameter in a URL pattern matches the rest of a request path
+// and stores that rest of the path in the context with the Rest value
+// for the parameter name as the key. The value stored in the context
+// will be the remainder of the path as a string.
 type Rest string
 
+// ServeHTTP fulfills the http.Handler interface and handles HTTP
+// requests by dispatching them to the appropriate route or the
+// NotFound handler if no route matches. Routes are tested against in
+// the order that they were defined. The first matching route will be
+// served.
+//
+// If the route panics, then the panic will be recovered here and
+// displayed using the Error handler, passing the recovered value in
+// the Param("error") context key. The error value is not guaranteed to
+// satisfy the error interface.
+//
+// Any BaseParams specified on the Router will be added to the request
+// context before calling any handler.
 func (router *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if err := recover(); err != nil {
@@ -45,10 +76,19 @@ func (router *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	router.notFound.ServeHTTP(w, r)
 }
 
+// BaseParam defines base parameters that the Router will define on the
+// request's context prior to calling any handler.
 func (router *Router) BaseParam(param interface{}, value interface{}) {
 	router.baseParams = append(router.baseParams, baseParam{param, value})
 }
 
+// Route maps a pattern to a http.Handler. The Router's ServeHTTP
+// method will dispatch requests to the earliest-defined route with a
+// matching pattern. The pattern must consist only of strings, Params,
+// and Rests. Strings match path component identical to the string.
+// Param values match any single path component. Rest values match the
+// entire rest of the request path. A Rest may only appear at the end
+// of a pattern.
 func (router *Router) Route(pattern []interface{}, handler http.Handler) {
 	// Validate the pattern
 	seenRest := false
@@ -71,10 +111,16 @@ func (router *Router) Route(pattern []interface{}, handler http.Handler) {
 	})
 }
 
+// NotFound specifies a handler that will be called when no defined
+// Route matches a request. A NotFound handler must be defined.
 func (router *Router) NotFound(handler http.Handler) {
 	router.notFound = handler
 }
 
+// Error specifies a handler that will be called when a Route panics.
+// The value passed to panic will be passed to the Error handler in the
+// Param("error") context key. Router does not guarantee that this
+// value will implement the error interface.
 func (router *Router) Error(handler http.Handler) {
 	router.errorHandler = handler
 }
