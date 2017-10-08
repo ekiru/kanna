@@ -1,7 +1,11 @@
+// The pages package defines a few miscellaneous pages that don't
+// belong to some more specific group of functionality.
 package pages
 
 import "github.com/ekiru/kanna/views"
 
+// Home handles requests to the root path and currently doesn't really
+// do anything.
 var Home = views.Html(
 	`<!doctype html>
 <title>Kanna - Hoooommmmeeeee</title>
@@ -9,6 +13,7 @@ var Home = views.Html(
 	This is just stubbing in a home page to have something existing.
 </p>`)
 
+// NotFound is displayed when a request does not match any Route.
 var NotFound = views.Html(
 	`<!doctype html>
 <title>Kanna - Page Not Found</title>
@@ -16,6 +21,8 @@ var NotFound = views.Html(
 	Kanna can't find yr page. T_T Please give her headpats before she starts crying.
 </p>`)
 
+// Error is displayed when an error occurs while processing a request
+// handler.
 var Error = views.Html(
 	`<!doctype html>
 <title>Kanna - Page Not Found</title>
