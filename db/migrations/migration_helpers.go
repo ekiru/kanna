@@ -15,6 +15,8 @@ func (id idHelper) ID() string {
 	return id.id
 }
 
+// A ColumnType identifies a column type when creating tables or adding
+// or modifying columns.
 type ColumnType int
 
 const (
@@ -26,6 +28,7 @@ const (
 	Timestamp
 )
 
+// String converts a ColumnType to a string.
 func (t ColumnType) String() string {
 	switch t {
 	case String, Text:
@@ -43,12 +46,25 @@ func (t ColumnType) String() string {
 	}
 }
 
+// A Column represents a database column.
 type Column struct {
-	Name          string
-	Type          ColumnType
-	Default       *string
-	NotNull       bool
-	PrimaryKey    bool
+	// Name is the name of the column.
+	Name string
+	// Type represents the type of the column and may be translated
+	// to a database-specific type name when applying a Migration.
+	Type ColumnType
+	// Default, if non-nil, contains a string that will be used as
+	// a SQL expression to define the default value for a column.
+	Default *string
+	// NotNull, if true, specifies that a column may not contain
+	// null values.
+	NotNull bool
+	// PrimaryKey, if true, specifies that the column is the
+	// primary key of the table.
+	PrimaryKey bool
+	// AutoIncrement, if true, requests that the database
+	// automatically supply incrementing values for a primary key
+	// column.
 	AutoIncrement bool
 }
 
@@ -58,6 +74,7 @@ type createTable struct {
 	columns []Column
 }
 
+// CreateTable defines a migration that creates a table.
 func CreateTable(id string, name string, cols_and_options ...interface{}) db.Migration {
 	var mi createTable
 	mi.idHelper.id = id
@@ -102,18 +119,24 @@ func (mi *createTable) Down(tx db.MigrationTx) {
 	tx.Exec(fmt.Sprintf("drop table %s", mi.name))
 }
 
+// A FreeForm Migration allows specifying arbitrary SQL queries for the
+// Up and Down directions.
 type FreeForm struct {
 	Identifier       string
 	Upward, Downward func(tx db.MigrationTx)
 }
 
+// ID returns the Identifier field of the FreeForm Migration.
 func (mi FreeForm) ID() string {
 	return mi.Identifier
 }
+
+// Up simply calls the Upward field of the FreeForm Migration.
 func (mi FreeForm) Up(tx db.MigrationTx) {
 	mi.Upward(tx)
 }
 
+// Down simply calls the Downward field of the FreeForm Migration.
 func (mi FreeForm) Down(tx db.MigrationTx) {
 	mi.Downward(tx)
 }
