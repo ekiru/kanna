@@ -2,21 +2,41 @@ package db
 
 import "database/sql"
 
+// MigrationTx wraps the database/sql package's Tx type to provide a
+// more restricted interface when running migrations.
 type MigrationTx struct {
 	tx *sql.Tx
 }
 
+// Exec executes a query without returning any rows by calling the
+// underlying Tx object's Exec method.
 func (tx MigrationTx) Exec(q string, vs ...interface{}) error {
 	_, err := tx.tx.Exec(q, vs...)
 	return err
 }
 
+// A Migration performs some reversible change to the database.
 type Migration interface {
+	// The ID identifies a particular migration and distinguishes it
+	// from other migrations in order to avoid performing the
+	// migration repeatedly or attempting to undo a migration that
+	// was never performed.
 	ID() string
+	// Up performs the migration, creating a table, changing a
+	// column type, or performing some other database schema
+	// operation.
 	Up(MigrationTx)
+	// Down undoes the migration, for example by deleting a table
+	// or reversing a change to a column.
 	Down(MigrationTx)
 }
 
+// ApplyMigration performs a migration and marks it as having been
+// performed in the Migrations table. All changes are performed in a
+// transaction: any error will cause all changes to be rolled back and
+// all changes should occur atomically. If the Migration has already
+// been performed, then ApplyMigration does nothing and returns a nil
+// error.
 func ApplyMigration(db *sql.DB, mi Migration) (err error) {
 	var tx *sql.Tx
 	tx, err = db.Begin()
@@ -48,6 +68,11 @@ func ApplyMigration(db *sql.DB, mi Migration) (err error) {
 	}
 	return
 }
+
+// UndoMigration undoes a migration and marks it as not having been
+// applied. Similarly to ApplyMigration, all changes are performed in a
+// transaction. The changes will only be performed if the migration has
+// previously been applied.
 func UndoMigration(db *sql.DB, mi Migration) (err error) {
 	// TODO check the migration is already there
 	var tx *sql.Tx
