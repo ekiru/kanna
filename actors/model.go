@@ -34,14 +34,20 @@ type Model struct {
 // FromRow fills a Model with the data from a row returned by a
 // database query from the Actors table.
 func (m *Model) FromRow(rows *sql.Rows) error {
-	err := db.FromRow(rows, map[string]interface{}{
+	err := db.FromRow(rows, m.Scanners())
+	return err
+}
+
+// Scanners returns a map of scanners that will scan database columns
+// into the fields of the Model.
+func (m *Model) Scanners() map[string]interface{} {
+	return map[string]interface{}{
 		"inbox":  db.URLScanner{&m.Inbox},
 		"outbox": db.URLScanner{&m.Outbox},
 		"name":   &m.Name,
 		"type":   &m.Type,
 		"id":     db.URLScanner{&m.ID},
-	})
-	return err
+	}
 }
 
 // ById retrieves an actor.Model from the database with the specified
