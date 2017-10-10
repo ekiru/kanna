@@ -28,7 +28,7 @@ type Model struct {
 	// Person, Group, Organization, and Application.
 	Type string `json:"type"`
 	// ID is the URL which uniquely identifies the Actor.
-	ID string `json:"id"`
+	ID *url.URL `json:"id"`
 }
 
 var exampleInbox, exampleOutbox *url.URL
@@ -53,7 +53,7 @@ func (m *Model) FromRow(rows *sql.Rows) error {
 		"outbox": db.URLScanner{&m.Outbox},
 		"name":   &m.Name,
 		"type":   &m.Type,
-		"id":     &m.ID,
+		"id":     db.URLScanner{&m.ID},
 	})
 	return err
 }
