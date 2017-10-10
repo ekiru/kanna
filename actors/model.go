@@ -48,24 +48,14 @@ func init() {
 // FromRow fills a Model with the data from a row returned by a
 // database query from the Actors table.
 func (m *Model) FromRow(rows *sql.Rows) error {
-	var inbox, outbox string
 	err := db.FromRow(rows, map[string]interface{}{
-		"inbox":  &inbox,
-		"outbox": &outbox,
+		"inbox":  db.URLScanner{&m.Inbox},
+		"outbox": db.URLScanner{&m.Outbox},
 		"name":   &m.Name,
 		"type":   &m.Type,
 		"id":     &m.ID,
 	})
-	if err != nil {
-		return err
-	}
-	if m.Inbox, err = url.Parse(inbox); err != nil {
-		return err
-	}
-	if m.Outbox, err = url.Parse(outbox); err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 // ById retrieves an actor.Model from the database with the specified
