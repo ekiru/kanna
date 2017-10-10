@@ -31,20 +31,6 @@ type Model struct {
 	ID *url.URL `json:"id"`
 }
 
-var exampleInbox, exampleOutbox *url.URL
-
-func init() {
-	var err error
-	exampleInbox, err = url.Parse("http://kanna.example/actor/srn/inbox")
-	if err != nil {
-		panic("failed parsing example inbox url")
-	}
-	exampleOutbox, err = url.Parse("http://kanna.example/actor/srn/outbox")
-	if err != nil {
-		panic("failed parsing example outbox url")
-	}
-}
-
 // FromRow fills a Model with the data from a row returned by a
 // database query from the Actors table.
 func (m *Model) FromRow(rows *sql.Rows) error {
