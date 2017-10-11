@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"github.com/ekiru/kanna/accounts"
 	"github.com/ekiru/kanna/db"
 	"github.com/ekiru/kanna/db/migrations"
 )
@@ -69,6 +70,44 @@ func Migrations() []db.Migration {
 			},
 			Downward: func(tx db.MigrationTx) {
 				tx.Exec("delete Actors where name = ?", "srn")
+			},
+		},
+		migrations.CreateTable(
+			"0003-create-accounts-table",
+			"Accounts",
+			migrations.Column{
+				Name:       "username",
+				Type:       migrations.String,
+				PrimaryKey: true,
+				NotNull:    true,
+			},
+			migrations.Column{
+				Name:    "passwordHash",
+				Type:    migrations.String,
+				NotNull: true,
+			},
+			migrations.Column{
+				Name:    "passwordHashVersion",
+				Type:    migrations.Int,
+				NotNull: true,
+			},
+			migrations.Column{
+				Name:    "actorId",
+				Type:    migrations.String,
+				NotNull: true,
+				Unique:  true,
+			},
+		),
+		migrations.FreeForm{
+			Identifier: "0004-create-example-account",
+			Upward: func(tx db.MigrationTx) {
+				tx.Exec("insert into Accounts (username, passwordHash, passwordHashAlgorithm, actorId) values (?, ?, ?, ?)",
+					"srn", accounts.HashScrypt.Hash("examplePassword"), accounts.HashScrypt,
+					"https://kanna.example/actor/srn",
+				)
+			},
+			Downward: func(tx db.MigrationTx) {
+				tx.Exec("delete Accounts where username = ?", "srn")
 			},
 		},
 	}
