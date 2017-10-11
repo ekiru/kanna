@@ -68,6 +68,9 @@ type Column struct {
 	// automatically supply incrementing values for a primary key
 	// column.
 	AutoIncrement bool
+	// Unique, if true, specifies that no two rows in the table can
+	// hold the same value.
+	Unique bool
 }
 
 type createTable struct {
@@ -107,6 +110,9 @@ func (mi *createTable) Up(tx db.MigrationTx) {
 			if col.AutoIncrement {
 				stmt.WriteString(" autoincrement")
 			}
+		}
+		if col.Unique {
+			stmt.WriteString(" unique")
 		}
 		if col.NotNull {
 			stmt.WriteString(" not null")
