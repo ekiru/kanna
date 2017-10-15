@@ -101,9 +101,9 @@ func Migrations() []db.Migration {
 		migrations.FreeForm{
 			Identifier: "0004-create-example-account",
 			Upward: func(tx db.MigrationTx) {
-				tx.Exec("insert into Accounts (username, passwordHash, passwordHashAlgorithm, actorId) values (?, ?, ?, ?)",
-					"srn", accounts.HashScrypt.Hash("examplePassword"), accounts.HashScrypt,
-					"https://kanna.example/actor/srn",
+				tx.Exec("insert into Accounts (username, passwordHash, passwordHashVersion, actorId) values (?, ?, ?, ?)",
+					"srn", accounts.HashScrypt.Hash("examplePassword", nil), accounts.HashScrypt,
+					"http://kanna.example/actor/srn",
 				)
 			},
 			Downward: func(tx db.MigrationTx) {

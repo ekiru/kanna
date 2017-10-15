@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/ekiru/kanna/accounts"
 	"github.com/ekiru/kanna/actors"
 	"github.com/ekiru/kanna/db"
 	"github.com/ekiru/kanna/pages"
@@ -24,6 +25,7 @@ func buildRoutes() http.Handler {
 
 	router.Route([]interface{}{}, pages.Home)
 
+	accounts.AddRoutes(&router)
 	actors.AddRoutes(&router)
 
 	router.NotFound(pages.NotFound)
