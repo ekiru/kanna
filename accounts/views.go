@@ -3,6 +3,7 @@ package accounts
 import (
 	"net/http"
 
+	"github.com/ekiru/kanna/models"
 	"github.com/ekiru/kanna/routes"
 	"github.com/ekiru/kanna/views"
 )
@@ -42,7 +43,7 @@ func authPost(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 	username, password := r.PostForm.Get("username"), r.PostForm.Get("password")
-	user, err := Authenticate(r.Context(), username, password)
+	user, err := models.Authenticate(r.Context(), username, password)
 	if err != nil {
 		w.WriteHeader(401)
 		w.Write([]byte("login failed"))

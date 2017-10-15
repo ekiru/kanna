@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/ekiru/kanna/models"
 	"github.com/ekiru/kanna/pages"
 	"github.com/ekiru/kanna/routes"
 	"github.com/ekiru/kanna/views"
@@ -27,11 +28,11 @@ var showActorTemplate = views.ParseHtmlTemplate(`<!doctype html>
 
 func showActor(w http.ResponseWriter, r *http.Request) {
 	type data struct {
-		Actor *Model
+		Actor *models.Actor
 	}
 	actorKey := r.Context().Value(routes.Param("actor")).(string)
 	actorId := fmt.Sprintf("http://kanna.example/actor/%s", actorKey)
-	if actor, err := ById(r.Context(), actorId); err == nil {
+	if actor, err := models.ActorById(r.Context(), actorId); err == nil {
 		showActorTemplate.Render(w, r, data{Actor: actor})
 	} else {
 		// TODO expose a way to serve a NotFound via the Router at this point

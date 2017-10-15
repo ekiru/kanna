@@ -1,6 +1,4 @@
-// The accounts package defines request handlers and database helpers
-// for retrieving and working with people's account data.
-package accounts
+package models
 
 import (
 	"bytes"
@@ -10,12 +8,11 @@ import (
 
 	"golang.org/x/crypto/scrypt"
 
-	"github.com/ekiru/kanna/actors"
 	"github.com/ekiru/kanna/db"
 )
 
-// accounts.Model represents an account on this server.
-type Model struct {
+// An Account represents an account on this server.
+type Account struct {
 	// Username is used by the owner of the account to log-in to
 	// this server.
 	Username string
@@ -28,18 +25,18 @@ type Model struct {
 	// account may have permission to view Activities delivered to
 	// other Actors or to author Activities as other Actors, but
 	// this Actor represents this account specifically.
-	Actor *actors.Model
+	Actor *Actor
 }
 
-// FromRow fills a Model with the data from a row returned by a
+// FromRow fills a Account with the data from a row returned by a
 // database query from the Accounts table joined with the Actors table.
-func (m *Model) FromRow(rows *sql.Rows) error {
-	m.Actor = &actors.Model{}
-	actor := m.Actor.Scanners()
+func (a *Account) FromRow(rows *sql.Rows) error {
+	a.Actor = &Actor{}
+	actor := a.Actor.Scanners()
 	return rows.Scan(
-		&m.Username,
-		&m.PasswordHash,
-		&m.PasswordHashVersion,
+		&a.Username,
+		&a.PasswordHash,
+		&a.PasswordHashVersion,
 		actor["id"],
 		actor["type"],
 		actor["name"],
@@ -48,10 +45,10 @@ func (m *Model) FromRow(rows *sql.Rows) error {
 	)
 }
 
-// ByUsername retrieves a accounts.Model for the account with the
-// supplied username, as well as the account's actor.
-func ByUsername(ctx context.Context, username string) (*Model, error) {
-	var model Model
+// AccountByUsername retrieves a accounts.Account for the account with
+// the supplied username, as well as the account's actor.
+func AccountByUsername(ctx context.Context, username string) (*Account, error) {
+	var account Account
 	rows, err := db.DB(ctx).QueryContext(ctx,
 		"select acct.username, acct.passwordHash, acct.passwordHashVersion, "+
 			"acct.actorId, act.type, act.name, act.inbox, act.outbox "+
@@ -65,16 +62,16 @@ func ByUsername(ctx context.Context, username string) (*Model, error) {
 	if !rows.Next() {
 		return nil, sql.ErrNoRows
 	}
-	if err = model.FromRow(rows); err != nil {
+	if err = account.FromRow(rows); err != nil {
 		return nil, err
 	}
-	return &model, nil
+	return &account, nil
 }
 
 // Authenticate attempts to authenticate as an account.
-func Authenticate(ctx context.Context, username string, password string) (*Model, error) {
+func Authenticate(ctx context.Context, username string, password string) (*Account, error) {
 	// TODO maybe avoid the user enum.
-	user, err := ByUsername(ctx, username)
+	user, err := AccountByUsername(ctx, username)
 	if err != nil {
 		return nil, err
 	}

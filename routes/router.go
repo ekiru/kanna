@@ -89,7 +89,7 @@ func (router *Router) BaseParam(param interface{}, value interface{}) {
 // Middleware adds a middleware to execute on all matching requests.
 func (router *Router) Middleware(mw Middleware) {
 	// TODO Should we run middleware on notfound/error requests?
-	r.middleware = append(r.middleware, mw)
+	router.middleware = append(router.middleware, mw)
 }
 
 // Route maps a pattern to a http.Handler. The Router's ServeHTTP
