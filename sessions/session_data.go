@@ -29,11 +29,18 @@ func (sd *sessionData) load(ctx context.Context) *Session {
 	}
 }
 
+// A Session stores session data for each client.
 type Session struct {
-	sd   *sessionData
+	sd *sessionData
+	// User is the Account model for the logged-in user, or nil if
+	// the client is not logged-in. The User is retrieved at the
+	// beginning of processing a request and is not automatically
+	// updated if other copies of the Account are modified.
 	User *models.Account
 }
 
+// Save saves changes to the session: particularly which user, if any,
+// is currently logged-in.
 func (s *Session) Save() {
 	sd := s.sd
 	if s.User != nil {

@@ -1,3 +1,5 @@
+// The sessions package provides a Middleware that manages user
+// sessions, using a session identifier in the URL.
 package sessions
 
 import (
@@ -13,7 +15,8 @@ type sessionMiddleware struct {
 	sessions map[string]*sessionData
 }
 
-// Middleware returns a middleware that will
+// Middleware returns a middleware that uses a cookie to store a random
+// session ID and stores a Session in the request context.
 func Middleware() routes.Middleware {
 	return sessionMiddleware{
 		sessions: make(map[string]*sessionData),
