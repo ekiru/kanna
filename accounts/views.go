@@ -11,14 +11,13 @@ import (
 
 // AddRoutes registers the routes related to accounts on the Router.
 func AddRoutes(router *routes.Router) {
-	router.Route([]interface{}{"auth"}, http.HandlerFunc(authDispatcher))
+	router.Route([]interface{}{routes.Method{"GET"}, "auth"}, http.HandlerFunc(authGet))
+	router.Route([]interface{}{routes.Method{"POST"}, "auth"}, http.HandlerFunc(authPost))
 	router.Route([]interface{}{"auth", "logout"}, http.HandlerFunc(authLogout))
 }
 
-func authDispatcher(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" {
-		authPost(w, r)
-	} else if user := sessions.Get(r.Context()).User; user != nil {
+func authGet(w http.ResponseWriter, r *http.Request) {
+	if user := sessions.Get(r.Context()).User; user != nil {
 		type data struct {
 			User *models.Account
 		}

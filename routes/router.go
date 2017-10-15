@@ -40,6 +40,10 @@ type Param string
 // will be the remainder of the path as a string.
 type Rest string
 
+// A Method component in a pattern matches if the request's HTTP method
+// is equal to one of the values in the Method.
+type Method []string
+
 // ServeHTTP fulfills the http.Handler interface and handles HTTP
 // requests by dispatching them to the appropriate route or the
 // NotFound handler if no route matches. Routes are tested against in
@@ -102,21 +106,30 @@ func (router *Router) Middleware(mw Middleware) {
 func (router *Router) Route(pattern []interface{}, handler http.Handler) {
 	// Validate the pattern
 	seenRest := false
+	pathPattern := make([]interface{}, 0, len(pattern))
+	var methods Method
 	for _, component := range pattern {
 		if seenRest {
 			panic("Invalid route: contained additional components after a Rest")
 		}
-		switch component.(type) {
+		switch component := component.(type) {
+		case Method:
+			if methods != nil {
+				panic("Invalid route: contained multiple Method components.")
+			}
+			methods = component
 		case Rest:
 			seenRest = true
+			pathPattern = append(pathPattern, component)
 		case string, Param:
-			continue
+			pathPattern = append(pathPattern, component)
 		default:
 			panic("Invalid route type")
 		}
 	}
 	router.routes = append(router.routes, &route{
-		patternComponents: pattern,
+		patternComponents: pathPattern,
+		methods:           methods,
 		handler:           handler,
 	})
 }
@@ -137,10 +150,23 @@ func (router *Router) Error(handler http.Handler) {
 
 type route struct {
 	patternComponents []interface{}
+	methods           Method
 	handler           http.Handler
 }
 
 func (route *route) Match(r *http.Request) (bool, *http.Request) {
+	if route.methods != nil {
+		var found bool
+		for _, m := range route.methods {
+			if r.Method == m {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false, r
+		}
+	}
 	ctx := r.Context()
 	urlPath := []string{}
 	for _, part := range strings.Split(r.URL.Path, "/") {
