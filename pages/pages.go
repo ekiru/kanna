@@ -2,7 +2,13 @@
 // belong to some more specific group of functionality.
 package pages
 
-import "github.com/ekiru/kanna/views"
+import (
+	"log"
+	"net/http"
+
+	"github.com/ekiru/kanna/routes"
+	"github.com/ekiru/kanna/views"
+)
 
 // Home handles requests to the root path and currently doesn't really
 // do anything.
@@ -23,9 +29,14 @@ var NotFound = views.Html(
 
 // Error is displayed when an error occurs while processing a request
 // handler.
-var Error = views.Html(
-	`<!doctype html>
+var Error = http.HandlerFunc(errorPage)
+
+func errorPage(w http.ResponseWriter, r *http.Request) {
+	log.Println(r.Context().Value(routes.Param("error")))
+	views.Html(
+		`<!doctype html>
 <title>Kanna - Page Not Found</title>
 <p>
 	Oh no, something went wrong. :( Kanna is _not_ happy.
-</p>`)
+</p>`).ServeHTTP(w, r)
+}

@@ -9,6 +9,7 @@ import (
 	"github.com/ekiru/kanna/db"
 	"github.com/ekiru/kanna/pages"
 	"github.com/ekiru/kanna/routes"
+	"github.com/ekiru/kanna/sessions"
 )
 
 func main() {
@@ -18,6 +19,8 @@ func main() {
 
 func buildRoutes() http.Handler {
 	var router routes.Router
+
+	router.Middleware(sessions.Middleware())
 
 	if err := db.InitParams(&router); err != nil {
 		log.Fatal(err)

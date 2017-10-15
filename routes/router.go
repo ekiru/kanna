@@ -62,16 +62,16 @@ func (router *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			router.errorHandler.ServeHTTP(w, r)
 		}
 	}()
+	ctx := r.Context()
+	for _, param := range router.baseParams {
+		ctx = context.WithValue(ctx, param.key, param.value)
+	}
+	r = r.WithContext(ctx)
+	for _, mw := range router.middleware {
+		w, r = mw.HandleMiddleware(w, r)
+	}
 	var ok bool
 	for _, route := range router.routes {
-		for _, mw := range router.middleware {
-			w, r = mw.HandleMiddleware(w, r)
-		}
-		ctx := r.Context()
-		for _, param := range router.baseParams {
-			ctx = context.WithValue(ctx, param.key, param.value)
-		}
-		r = r.WithContext(ctx)
 		if ok, r = route.Match(r); ok {
 			route.ServeHTTP(w, r)
 			return
