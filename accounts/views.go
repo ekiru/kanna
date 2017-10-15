@@ -12,6 +12,7 @@ import (
 // AddRoutes registers the routes related to accounts on the Router.
 func AddRoutes(router *routes.Router) {
 	router.Route([]interface{}{"auth"}, http.HandlerFunc(authDispatcher))
+	router.Route([]interface{}{"auth", "logout"}, http.HandlerFunc(authLogout))
 }
 
 func authDispatcher(w http.ResponseWriter, r *http.Request) {
@@ -31,6 +32,9 @@ var authLoggedInTemplate = views.ParseHtmlTemplate(`<!doctype html>
 	<title>Kanna - Logged In!</title>
 	<p>
 		You're already logged in as {{.User.Username}}!
+	</p>
+	<p>
+		<a href="/auth/logout">Logout</a>
 	</p>
 `)
 
@@ -65,5 +69,10 @@ func authPost(w http.ResponseWriter, r *http.Request) {
 	sess := sessions.Get(r.Context())
 	sess.User = user
 	sess.Save()
+	http.Redirect(w, r, "/auth", http.StatusSeeOther)
+}
+
+func authLogout(w http.ResponseWriter, r *http.Request) {
+	sessions.Close(r.Context())
 	http.Redirect(w, r, "/auth", http.StatusSeeOther)
 }

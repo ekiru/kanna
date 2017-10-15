@@ -28,7 +28,9 @@ const (
 	idLen      = 42
 )
 
-type contextKey struct{}
+type mwContextKey struct{}
+type sessionContextKey struct{}
+type sessionIdContextKey struct{}
 
 func (mw sessionMiddleware) HandleMiddleware(w http.ResponseWriter, r *http.Request) (http.ResponseWriter, *http.Request) {
 	var sessionId string
@@ -42,7 +44,11 @@ func (mw sessionMiddleware) HandleMiddleware(w http.ResponseWriter, r *http.Requ
 	} else {
 		sessionId, session = mw.createSession(w)
 	}
-	r = r.WithContext(context.WithValue(r.Context(), contextKey{}, session.load(r.Context())))
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, mwContextKey{}, mw)
+	ctx = context.WithValue(ctx, sessionContextKey{}, session.load(ctx))
+	ctx = context.WithValue(ctx, sessionIdContextKey{}, sessionId)
+	r = r.WithContext(ctx)
 	return w, r
 }
 
@@ -68,8 +74,15 @@ func newSessionId() string {
 	return hex.EncodeToString(id)
 }
 
+// Close invalidates the current Session.
+func Close(ctx context.Context) {
+	mw := ctx.Value(mwContextKey{}).(sessionMiddleware)
+	id := ctx.Value(sessionIdContextKey{}).(string)
+	delete(mw.sessions, id)
+}
+
 // Get retrieves the Session from the request context.
 func Get(ctx context.Context) *Session {
 	// TODO maybe check this
-	return ctx.Value(contextKey{}).(*Session)
+	return ctx.Value(sessionContextKey{}).(*Session)
 }
