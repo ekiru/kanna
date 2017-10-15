@@ -10,9 +10,11 @@ type MigrationTx struct {
 
 // Exec executes a query without returning any rows by calling the
 // underlying Tx object's Exec method.
-func (tx MigrationTx) Exec(q string, vs ...interface{}) error {
+func (tx MigrationTx) Exec(q string, vs ...interface{}) {
 	_, err := tx.tx.Exec(q, vs...)
-	return err
+	if err != nil {
+		panic(err)
+	}
 }
 
 // A Migration performs some reversible change to the database.
