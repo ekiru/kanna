@@ -18,6 +18,7 @@ type Router struct {
 	notFound     http.Handler
 	errorHandler http.Handler
 	baseParams   []baseParam
+	middleware   []Middleware
 }
 
 type baseParam struct {
@@ -63,6 +64,9 @@ func (router *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}()
 	var ok bool
 	for _, route := range router.routes {
+		for _, mw := range router.middleware {
+			w, r = mw.HandleMiddleware(w, r)
+		}
 		ctx := r.Context()
 		for _, param := range router.baseParams {
 			ctx = context.WithValue(ctx, param.key, param.value)
@@ -80,6 +84,12 @@ func (router *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // request's context prior to calling any handler.
 func (router *Router) BaseParam(param interface{}, value interface{}) {
 	router.baseParams = append(router.baseParams, baseParam{param, value})
+}
+
+// Middleware adds a middleware to execute on all matching requests.
+func (router *Router) Middleware(mw Middleware) {
+	// TODO Should we run middleware on notfound/error requests?
+	r.middleware = append(r.middleware, mw)
 }
 
 // Route maps a pattern to a http.Handler. The Router's ServeHTTP
