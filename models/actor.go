@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"net/url"
 
+	"github.com/ekiru/kanna/activitystreams"
 	"github.com/ekiru/kanna/db"
 )
 
@@ -28,6 +29,19 @@ type Actor struct {
 	Type string `json:"type"`
 	// ID is the URL which uniquely identifies the Actor.
 	ID *url.URL `json:"id"`
+}
+
+// AsObject serializes the Actor to an Activity Streams Object.
+func (a *Actor) AsObject() *activitystreams.Object {
+	return &activitystreams.Object{
+		ID:   a.ID,
+		Type: a.Type,
+		Props: map[string]interface{}{
+			"inbox":  a.Inbox,
+			"outbox": a.Outbox,
+			"name":   a.Name,
+		},
+	}
 }
 
 // FromRow fills an Actor with the data from a row returned by a
