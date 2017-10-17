@@ -29,22 +29,7 @@ func authGet(w http.ResponseWriter, r *http.Request) {
 
 var authLoggedInTemplate = views.HtmlTemplate("auth_logged_in.html")
 
-var authShowForm = views.Html(`<!doctype html>
-	<title>Kanna - Login</title>
-	<form method=post>
-		<p>
-			<label for=username>Username</label>
-			<input type=text name=username />
-		</p>
-		<p>
-			<label for=password>Password</label>
-			<input type=password name=password />
-		</p>
-		<p>
-			<input type=submit value="log in" />
-		</p>
-	</form>
-`)
+var authShowForm = views.HtmlTemplate("auth_form.html")
 
 func authPost(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {

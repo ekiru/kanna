@@ -21,3 +21,8 @@ func (template HtmlTemplate) Render(w http.ResponseWriter, r *http.Request, data
 	}
 	sendHtml(w, output.Bytes())
 }
+
+// ServeHTTP on an HtmlTemplate calls Render with nil data.
+func (template HtmlTemplate) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	template.Render(w, r, nil)
+}
