@@ -27,15 +27,7 @@ func authGet(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-var authLoggedInTemplate = views.ParseHtmlTemplate(`<!doctype html>
-	<title>Kanna - Logged In!</title>
-	<p>
-		You're already logged in as {{.User.Username}}!
-	</p>
-	<p>
-		<a href="/auth/logout">Logout</a>
-	</p>
-`)
+var authLoggedInTemplate = views.HtmlTemplate("auth_logged_in.html")
 
 var authShowForm = views.Html(`<!doctype html>
 	<title>Kanna - Login</title>

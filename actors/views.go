@@ -17,16 +17,7 @@ func AddRoutes(router *routes.Router) {
 	router.Route([]interface{}{"actor", routes.Param("actor")}, http.HandlerFunc(showActor))
 }
 
-var showActorTemplate = views.ParseHtmlTemplate(`<!doctype html>
-<title>Kanna - {{.Actor.Name}} ({{.Actor.ID}}</title>
-<h1>The {{.Actor.Type}} named <a href={{.Actor.ID}}>{{.Actor.Name}}</a></h1>
-
-<nav>
-	<ul>
-		<li><a href={{.Actor.Inbox}}>Inbox</a>
-		<li><a href={{.Actor.Outbox}}>Outbox</a>
-	</ul>
-</nav>`)
+var showActorTemplate = views.HtmlTemplate("actor_show.html")
 
 func showActor(w http.ResponseWriter, r *http.Request) {
 	type data struct {
