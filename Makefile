@@ -2,7 +2,7 @@ run:
 	go run main.go
 
 migrate:
-	go run migrations/migrate.go
+	go run migrations/migrations.go
 
 .PHONY: run migrate
 

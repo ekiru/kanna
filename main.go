@@ -8,6 +8,7 @@ import (
 	"github.com/ekiru/kanna/actors"
 	"github.com/ekiru/kanna/db"
 	"github.com/ekiru/kanna/pages"
+	"github.com/ekiru/kanna/posts"
 	"github.com/ekiru/kanna/routes"
 	"github.com/ekiru/kanna/sessions"
 )
@@ -30,6 +31,7 @@ func buildRoutes() http.Handler {
 
 	accounts.AddRoutes(&router)
 	actors.AddRoutes(&router)
+	posts.AddRoutes(&router)
 
 	router.NotFound(pages.NotFound)
 	router.Error(pages.Error)

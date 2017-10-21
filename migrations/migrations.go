@@ -3,9 +3,9 @@ package main
 import (
 	"log"
 
-	"github.com/ekiru/kanna/accounts"
 	"github.com/ekiru/kanna/db"
 	"github.com/ekiru/kanna/db/migrations"
+	"github.com/ekiru/kanna/models"
 )
 
 func main() {
@@ -102,12 +102,59 @@ func Migrations() []db.Migration {
 			Identifier: "0004-create-example-account",
 			Upward: func(tx db.MigrationTx) {
 				tx.Exec("insert into Accounts (username, passwordHash, passwordHashVersion, actorId) values (?, ?, ?, ?)",
-					"srn", accounts.HashScrypt.Hash("examplePassword", nil), accounts.HashScrypt,
+					"srn", models.HashScrypt.Hash("examplePassword", nil), models.HashScrypt,
 					"http://kanna.example/actor/srn",
 				)
 			},
 			Downward: func(tx db.MigrationTx) {
 				tx.Exec("delete Accounts where username = ?", "srn")
+			},
+		},
+		migrations.CreateTable(
+			"0005-create-posts-table",
+			"Posts",
+			migrations.Column{
+				Name:       "id",
+				Type:       migrations.String,
+				PrimaryKey: true,
+				NotNull:    true,
+			},
+			migrations.Column{
+				Name:    "type",
+				Type:    migrations.String,
+				NotNull: true,
+			},
+			migrations.Column{
+				Name:    "audience",
+				Type:    migrations.String,
+				NotNull: true,
+			},
+			migrations.Column{
+				Name:    "authorId",
+				Type:    migrations.String,
+				NotNull: true,
+			},
+			migrations.Column{
+				Name:    "content",
+				Type:    migrations.String,
+				NotNull: true,
+			},
+			migrations.Column{
+				Name:    "published",
+				Type:    migrations.String,
+				NotNull: true,
+			},
+		),
+		migrations.FreeForm{
+			Identifier: "0006-create-example-post",
+			Upward: func(tx db.MigrationTx) {
+				tx.Exec("insert into Posts (id, type, audience, authorId, content, published) values (?, ?, ?, ?, ?, ?)",
+					"http://kanna.example/post/1", "Note", "https://www.w3.org/ns/activitystreams#Public",
+					"http://kanna.example/actor/srn", "This is an example post!!!", "2017-10-21T15:49:45Z",
+				)
+			},
+			Downward: func(tx db.MigrationTx) {
+				tx.Exec("delete Posts where id = ?", "http://kanna.example/post/1")
 			},
 		},
 	}
