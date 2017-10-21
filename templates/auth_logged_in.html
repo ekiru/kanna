@@ -1,8 +1,11 @@
-<!doctype html>
-<title>Kanna - Logged In!</title>
-<p>
-	You're already logged in as {{.User.Username}}!
-</p>
-<p>
-	<a href="/auth/logout">Logout</a>
-</p>
+{{ define "title" }}
+	Logged In!
+{{ end }}
+{{ define "content" }}
+	<p>
+		You're already logged in as {{.User.Username}}!
+	</p>
+	<p>
+		<a href="/auth/logout">Logout</a>
+	</p>
+{{ end }}

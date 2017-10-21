@@ -4,9 +4,45 @@ import (
 	"bytes"
 	"html/template"
 	"net/http"
+	"os"
+	"path/filepath"
 )
 
-var templates *template.Template = template.Must(template.ParseGlob("templates/*.html"))
+var templates map[string]*template.Template
+
+func init() {
+	templates = make(map[string]*template.Template)
+	readTemplates("templates", "")
+}
+
+func readTemplates(dirname string, prefix string) {
+	fs := readDir(dirname)
+	for _, f := range fs {
+		if dirname == "templates" && f.Name() == "layout.html" {
+			continue
+		}
+		fileName := filepath.Join(dirname, f.Name())
+		name := prefix + f.Name()
+		if f.IsDir() {
+			readTemplates(fileName, name+"/")
+		} else {
+			templates[name] = template.Must(template.ParseFiles("templates/layout.html", fileName))
+		}
+	}
+}
+
+func readDir(name string) []os.FileInfo {
+	f, err := os.Open(name)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+	fs, err := f.Readdir(0)
+	if err != nil {
+		panic(err)
+	}
+	return fs
+}
 
 // HtmlTemplate views serve an HTML document from a template defined
 // using the template/html package.
@@ -16,7 +52,7 @@ type HtmlTemplate string
 // supplied data to the template.
 func (template HtmlTemplate) Render(w http.ResponseWriter, r *http.Request, data interface{}) {
 	var output bytes.Buffer
-	if err := templates.ExecuteTemplate(&output, string(template), data); err != nil {
+	if err := templates[string(template)].ExecuteTemplate(&output, "layout.html", data); err != nil {
 		panic(err)
 	}
 	sendHtml(w, output.Bytes())

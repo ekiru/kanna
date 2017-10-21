@@ -1,8 +1,11 @@
-<!doctype html>
-<title>Kanna - {{.Post.Type}} by {{.Post.Author.Name}}</title>
-<main>
-	<article>
-		<p>{{.Post.Content}}</p>
-		<p>By <a href={{.Post.Author.ID}}>{{.Post.Author.Name}}</a> at {{.Post.Published}}</p>
-	</article>
-</main>
+{{ define "title" }}
+	{{.Post.Type}} by {{.Post.Author.Name}}</title>
+{{ end }}
+{{ define "content" }}
+	<main>
+		<article>
+			<p>{{.Post.Content}}</p>
+			<p>By <a href={{.Post.Author.ID}}>{{.Post.Author.Name}}</a> at {{.Post.Published}}</p>
+		</article>
+	</main>
+{{ end }}
