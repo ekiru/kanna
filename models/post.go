@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"net/url"
 
+	"github.com/ekiru/kanna/activitystreams"
 	"github.com/ekiru/kanna/db"
 )
 
@@ -15,6 +16,19 @@ type Post struct {
 	Author    *Actor
 	Content   string
 	Published string
+}
+
+func (post *Post) AsObject() *activitystreams.Object {
+	return &activitystreams.Object{
+		ID:   post.ID,
+		Type: post.Type,
+		Props: map[string]interface{}{
+			"audience":  post.Audience,
+			"author":    post.Author.ID,
+			"content":   post.Content,
+			"published": post.Published,
+		},
+	}
 }
 
 func (post *Post) FromRow(rows *sql.Rows) error {
