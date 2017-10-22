@@ -6,27 +6,42 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 var templates map[string]*template.Template
 
 func init() {
 	templates = make(map[string]*template.Template)
-	readTemplates("templates", "")
+	var partials []string
+	views := map[string]string{}
+	readTemplates("templates", "", &partials, views)
+	files := make([]string, len(partials)+2)
+	files[0] = "templates/layout.html"
+	copy(files[2:], partials)
+	for name, fileName := range views {
+		files[1] = fileName
+		templates[name] = template.Must(template.ParseFiles(files...))
+	}
 }
 
-func readTemplates(dirname string, prefix string) {
+func readTemplates(dirname string, prefix string, partials *[]string, views map[string]string) {
 	fs := readDir(dirname)
 	for _, f := range fs {
 		if dirname == "templates" && f.Name() == "layout.html" {
 			continue
 		}
+		if f.Name()[0] == '.' {
+			continue
+		}
 		fileName := filepath.Join(dirname, f.Name())
 		name := prefix + f.Name()
 		if f.IsDir() {
-			readTemplates(fileName, name+"/")
+			readTemplates(fileName, name+"/", partials, views)
+		} else if strings.Contains(name, ".partial.") {
+			*partials = append(*partials, fileName)
 		} else {
-			templates[name] = template.Must(template.ParseFiles("templates/layout.html", fileName))
+			views[name] = fileName
 		}
 	}
 }
