@@ -29,7 +29,6 @@ func showPost(w http.ResponseWriter, r *http.Request) {
 		r.Header.Set("Accept", activitystreams.ContentType)
 	}
 	postId := fmt.Sprintf("http://kanna.example/post/%s", postKey)
-	log.Println(postKey, postId)
 	if post, err := models.PostById(r.Context(), postId); err == nil {
 		switch r.Header.Get("Accept") {
 		case activitystreams.ContentType:
