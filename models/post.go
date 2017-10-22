@@ -68,3 +68,24 @@ func PostById(ctx context.Context, id string) (*Post, error) {
 	}
 	return &post, nil
 }
+
+func PostsByActor(ctx context.Context, actor *Actor) ([]*Post, error) {
+	var posts []*Post
+	rows, err := db.DB(ctx).QueryContext(ctx,
+		"select post.id, post.type, post.audience, post.content, post.published, "+
+			"post.authorId, act.type, act.name, act.inbox, act.outbox "+
+			"from Posts post join Actors act on post.authorId = act.id "+
+			"where act.id = ?",
+		actor.ID.String())
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var post Post
+		if err = post.FromRow(rows); err != nil {
+			return posts, err
+		}
+		posts = append(posts, &post)
+	}
+	return posts, rows.Err()
+}

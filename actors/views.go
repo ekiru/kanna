@@ -22,6 +22,7 @@ var showActorTemplate = views.HtmlTemplate("actors/show.html")
 func showActor(w http.ResponseWriter, r *http.Request) {
 	type data struct {
 		Actor *models.Actor
+		Posts []*models.Post
 	}
 	actorKey := r.Context().Value(routes.Param("actor")).(string)
 	if strings.HasSuffix(actorKey, ".json") {
@@ -31,16 +32,18 @@ func showActor(w http.ResponseWriter, r *http.Request) {
 	}
 	actorId := fmt.Sprintf("http://kanna.example/actor/%s", actorKey)
 	if actor, err := models.ActorById(r.Context(), actorId); err == nil {
-		switch r.Header.Get("Accept") {
-		case activitystreams.ContentType:
-			views.ActivityStream(actor).ServeHTTP(w, r)
-		default:
-			showActorTemplate.Render(w, r, data{Actor: actor})
+		if posts, err := models.PostsByActor(r.Context(), actor); err == nil {
+			switch r.Header.Get("Accept") {
+			case activitystreams.ContentType:
+				views.ActivityStream(actor).ServeHTTP(w, r)
+			default:
+				showActorTemplate.Render(w, r, data{Actor: actor, Posts: posts})
+			}
+			return
 		}
-	} else {
-		// TODO expose a way to serve a NotFound via the Router at this point
-		// TODO expose a way to serve an error
-		// TODO distinguish not found from other errors
-		pages.NotFound.ServeHTTP(w, r)
 	}
+	// TODO expose a way to serve a NotFound via the Router at this point
+	// TODO expose a way to serve an error
+	// TODO distinguish not found from other errors
+	pages.NotFound.ServeHTTP(w, r)
 }

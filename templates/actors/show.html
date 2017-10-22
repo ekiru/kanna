@@ -10,4 +10,10 @@
 			<li><a href={{.Actor.Outbox}}>Outbox</a>
 		</ul>
 	</nav>
+
+	<div id=posts>
+		{{ range .Posts }}
+			{{ template "post.partial.html" . }}
+		{{ end }}
+	</div>
 {{ end }}
