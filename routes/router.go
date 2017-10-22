@@ -64,10 +64,7 @@ func (router *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			case Failure:
 				err.HandleFailure(router, w, r)
 			default:
-				r = r.WithContext(
-					context.WithValue(r.Context(), Param("error"), err),
-				)
-				router.errorHandler.ServeHTTP(w, r)
+				Error(err).HandleFailure(router, w, r)
 			}
 		}
 	}()

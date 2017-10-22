@@ -1,8 +1,8 @@
 package posts
 
 import (
+	"database/sql"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 
@@ -35,11 +35,9 @@ func showPost(w http.ResponseWriter, r *http.Request) {
 		default:
 			views.HtmlTemplate("posts/show.html").Render(w, r, data{Post: post})
 		}
-	} else {
-		// TODO expose a way to serve a NotFound via the Router at this point
-		// TODO expose a way to serve an error
-		// TODO distinguish not found from other errors
-		log.Println(err)
+	} else if err == sql.ErrNoRows {
 		panic(routes.NotFound)
+	} else {
+		panic(routes.Error(err))
 	}
 }

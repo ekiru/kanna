@@ -1,6 +1,7 @@
 package actors
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 	"strings"
@@ -39,10 +40,12 @@ func showActor(w http.ResponseWriter, r *http.Request) {
 				showActorTemplate.Render(w, r, data{Actor: actor, Posts: posts})
 			}
 			return
+		} else {
+			panic(routes.Error(err))
 		}
+	} else if err == sql.ErrNoRows {
+		panic(routes.NotFound)
+	} else {
+		panic(routes.Error(err))
 	}
-	// TODO expose a way to serve a NotFound via the Router at this point
-	// TODO expose a way to serve an error
-	// TODO distinguish not found from other errors
-	panic(routes.NotFound)
 }
