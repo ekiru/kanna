@@ -24,7 +24,7 @@ func showPost(w http.ResponseWriter, r *http.Request) {
 	postId := fmt.Sprintf("http://kanna.example/post/%s", postKey)
 	log.Println(postKey, postId)
 	if post, err := models.PostById(r.Context(), postId); err == nil {
-		views.HtmlTemplate("post_show.html").Render(w, r, data{Post: post})
+		views.HtmlTemplate("posts/show.html").Render(w, r, data{Post: post})
 	} else {
 		// TODO expose a way to serve a NotFound via the Router at this point
 		// TODO expose a way to serve an error

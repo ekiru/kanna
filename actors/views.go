@@ -17,7 +17,7 @@ func AddRoutes(router *routes.Router) {
 	router.Route([]interface{}{"actor", routes.Param("actor")}, http.HandlerFunc(showActor))
 }
 
-var showActorTemplate = views.HtmlTemplate("actor_show.html")
+var showActorTemplate = views.HtmlTemplate("actors/show.html")
 
 func showActor(w http.ResponseWriter, r *http.Request) {
 	type data struct {

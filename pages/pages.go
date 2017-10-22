@@ -12,10 +12,10 @@ import (
 
 // Home handles requests to the root path and currently doesn't really
 // do anything.
-var Home = views.HtmlTemplate("page_home.html")
+var Home = views.HtmlTemplate("pages/home.html")
 
 // NotFound is displayed when a request does not match any Route.
-var NotFound = views.HtmlTemplate("page_not_found.html")
+var NotFound = views.HtmlTemplate("pages/not_found.html")
 
 // Error is displayed when an error occurs while processing a request
 // handler.
@@ -23,5 +23,5 @@ var Error = http.HandlerFunc(errorPage)
 
 func errorPage(w http.ResponseWriter, r *http.Request) {
 	log.Println(r.Context().Value(routes.Param("error")))
-	views.HtmlTemplate("page_error.html").ServeHTTP(w, r)
+	views.HtmlTemplate("pages/error.html").ServeHTTP(w, r)
 }

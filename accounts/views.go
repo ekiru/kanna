@@ -27,9 +27,9 @@ func authGet(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-var authLoggedInTemplate = views.HtmlTemplate("auth_logged_in.html")
+var authLoggedInTemplate = views.HtmlTemplate("auth/logged_in.html")
 
-var authShowForm = views.HtmlTemplate("auth_form.html")
+var authShowForm = views.HtmlTemplate("auth/form.html")
 
 func authPost(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
