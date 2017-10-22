@@ -7,7 +7,6 @@ import (
 
 	"github.com/ekiru/kanna/activitystreams"
 	"github.com/ekiru/kanna/models"
-	"github.com/ekiru/kanna/pages"
 	"github.com/ekiru/kanna/routes"
 	"github.com/ekiru/kanna/views"
 )
@@ -45,5 +44,5 @@ func showActor(w http.ResponseWriter, r *http.Request) {
 	// TODO expose a way to serve a NotFound via the Router at this point
 	// TODO expose a way to serve an error
 	// TODO distinguish not found from other errors
-	pages.NotFound.ServeHTTP(w, r)
+	panic(routes.NotFound)
 }

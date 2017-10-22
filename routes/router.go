@@ -60,10 +60,15 @@ type Method []string
 func (router *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if err := recover(); err != nil {
-			r = r.WithContext(
-				context.WithValue(r.Context(), Param("error"), err),
-			)
-			router.errorHandler.ServeHTTP(w, r)
+			switch err := err.(type) {
+			case Failure:
+				err.HandleFailure(router, w, r)
+			default:
+				r = r.WithContext(
+					context.WithValue(r.Context(), Param("error"), err),
+				)
+				router.errorHandler.ServeHTTP(w, r)
+			}
 		}
 	}()
 	ctx := r.Context()
