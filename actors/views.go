@@ -26,16 +26,15 @@ func showActor(w http.ResponseWriter, r *http.Request) {
 	actorKey := r.Context().Value(routes.Param("actor")).(string)
 	actorId := fmt.Sprintf("http://kanna.example/actor/%s", actorKey)
 	if actor, err := models.ActorById(r.Context(), actorId); err == nil {
-		if posts, err := models.PostsByActor(r.Context(), actor); err == nil {
-			switch r.Header.Get("Accept") {
-			case activitystreams.ContentType:
-				views.ActivityStream(actor).ServeHTTP(w, r)
-			default:
+		switch r.Header.Get("Accept") {
+		case activitystreams.ContentType:
+			views.ActivityStream(actor).ServeHTTP(w, r)
+		default:
+			if posts, err := models.PostsByActor(r.Context(), actor); err == nil {
 				showActorTemplate.Render(w, r, data{Actor: actor, Posts: posts})
+			} else {
+				panic(routes.Error(err))
 			}
-			return
-		} else {
-			panic(routes.Error(err))
 		}
 	} else if err == sql.ErrNoRows {
 		panic(routes.NotFound)
