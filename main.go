@@ -7,6 +7,7 @@ import (
 	"github.com/ekiru/kanna/accounts"
 	"github.com/ekiru/kanna/actors"
 	"github.com/ekiru/kanna/db"
+	"github.com/ekiru/kanna/middleware"
 	"github.com/ekiru/kanna/pages"
 	"github.com/ekiru/kanna/posts"
 	"github.com/ekiru/kanna/routes"
@@ -22,6 +23,7 @@ func buildRoutes() http.Handler {
 	var router routes.Router
 
 	router.Middleware(sessions.Middleware())
+	router.Middleware(middleware.ContentTypeOverride())
 
 	if err := db.InitParams(&router); err != nil {
 		log.Fatal(err)

@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/ekiru/kanna/activitystreams"
 	"github.com/ekiru/kanna/models"
@@ -25,11 +24,6 @@ func showActor(w http.ResponseWriter, r *http.Request) {
 		Posts []*models.Post
 	}
 	actorKey := r.Context().Value(routes.Param("actor")).(string)
-	if strings.HasSuffix(actorKey, ".json") {
-		// overrides to expect activity streams.
-		actorKey = strings.TrimSuffix(actorKey, ".json")
-		r.Header.Set("Accept", activitystreams.ContentType)
-	}
 	actorId := fmt.Sprintf("http://kanna.example/actor/%s", actorKey)
 	if actor, err := models.ActorById(r.Context(), actorId); err == nil {
 		if posts, err := models.PostsByActor(r.Context(), actor); err == nil {

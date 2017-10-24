@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/ekiru/kanna/activitystreams"
 	"github.com/ekiru/kanna/models"
@@ -22,11 +21,6 @@ func showPost(w http.ResponseWriter, r *http.Request) {
 		Post *models.Post
 	}
 	postKey := r.Context().Value(routes.Param("post")).(string)
-	if strings.HasSuffix(postKey, ".json") {
-		// overrides to expect activity streams.
-		postKey = strings.TrimSuffix(postKey, ".json")
-		r.Header.Set("Accept", activitystreams.ContentType)
-	}
 	postId := fmt.Sprintf("http://kanna.example/post/%s", postKey)
 	if post, err := models.PostById(r.Context(), postId); err == nil {
 		switch r.Header.Get("Accept") {
