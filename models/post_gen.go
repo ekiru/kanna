@@ -1,3 +1,4 @@
+
 package models
 
 import (
@@ -5,12 +6,12 @@ import (
 )
 
 type Post struct {
-	id        *url.URL
-	typ       string
+	id *url.URL
+	typ string
+	Audience string
+	Author *Actor
+	Content string
 	Published string
-	Audience  string
-	Author    *Actor
-	Content   string
 }
 
 func (model *Post) ID() *url.URL {
@@ -18,7 +19,7 @@ func (model *Post) ID() *url.URL {
 }
 
 func (model *Post) Types() []string {
-	return []string{model.typ}
+	return []string{ model.typ }
 }
 
 func (model *Post) HasType(t string) bool {
@@ -26,7 +27,7 @@ func (model *Post) HasType(t string) bool {
 }
 
 func (model *Post) Props() []string {
-	return []string{"id", "type", "published", "audience", "author", "content"}
+	return []string{ "id", "type", "audience","author","content","published", }
 }
 
 func (model *Post) GetProp(prop string) (interface{}, bool) {
@@ -35,14 +36,14 @@ func (model *Post) GetProp(prop string) (interface{}, bool) {
 		return model.id, true
 	case "type":
 		return model.typ, true
-	case "published":
-		return model.Published, true
 	case "audience":
 		return model.Audience, true
 	case "author":
 		return model.Author, true
 	case "content":
 		return model.Content, true
+	case "published":
+		return model.Published, true
 	default:
 		return nil, false
 	}

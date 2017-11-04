@@ -2,7 +2,7 @@
 	{{.Actor.Name}} ({{.Actor.ID}}
 {{ end }}
 {{ define "content" }}
-	<h1>The {{.Actor.Type}} named <a href={{.Actor.ID}}>{{.Actor.Name}}</a></h1>
+	<h1>The {{index .Actor.Types 0}} named <a href={{.Actor.ID}}>{{.Actor.Name}}</a></h1>
 
 	<nav>
 		<ul>

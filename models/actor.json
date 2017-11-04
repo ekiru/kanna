@@ -1,0 +1,9 @@
+{
+	"package": "models",
+	"name": "Actor",
+	"properties": {
+		"name": "string",
+		"inbox": "*url.URL",
+		"outbox": "*url.URL"
+	}
+}
