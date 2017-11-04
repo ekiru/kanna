@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"sort"
 	"strings"
 	"text/template"
 )
@@ -163,6 +164,9 @@ func processModel(raw rawModel) *Model {
 			Type:       typ,
 		})
 	}
+	sort.Slice(props, func(i, j int) bool {
+		return props[i].Name < props[j].Name
+	})
 	return &Model{
 		Package:    raw.Package,
 		Name:       raw.Name,
