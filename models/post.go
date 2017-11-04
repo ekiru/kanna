@@ -5,12 +5,11 @@ import (
 	"database/sql"
 	"net/url"
 
-	"github.com/ekiru/kanna/activitystreams"
 	"github.com/ekiru/kanna/db"
 )
 
 type Post struct {
-	ID        *url.URL
+	id        *url.URL
 	Type      string
 	Audience  string
 	Author    *Actor
@@ -18,24 +17,46 @@ type Post struct {
 	Published string
 }
 
-func (post *Post) AsObject() *activitystreams.Object {
-	return &activitystreams.Object{
-		ID:   post.ID,
-		Type: post.Type,
-		Props: map[string]interface{}{
-			"audience":  post.Audience,
-			"author":    post.Author.ID,
-			"content":   post.Content,
-			"published": post.Published,
-		},
+func (p *Post) ID() *url.URL {
+	return p.id
+}
+
+func (p *Post) Types() []string {
+	return []string{p.Type}
+}
+
+func (p *Post) HasType(t string) bool {
+	return p.Type == t
+}
+
+func (p *Post) GetProp(name string) (interface{}, bool) {
+	switch name {
+	case "id":
+		return p.id, true
+	case "type":
+		return p.Type, true
+	case "audience":
+		return p.Audience, true
+	case "author":
+		return p.Author, true
+	case "content":
+		return p.Content, true
+	case "published":
+		return p.Published, true
+	default:
+		return nil, false
 	}
+}
+
+func (p *Post) Props() []string {
+	return []string{"id", "type", "audience", "author", "content", "published"}
 }
 
 func (post *Post) FromRow(rows *sql.Rows) error {
 	post.Author = &Actor{}
 	actor := post.Author.Scanners()
 	return rows.Scan(
-		db.URLScanner{&post.ID},
+		db.URLScanner{&post.id},
 		&post.Type,
 		&post.Audience,
 		&post.Content,
@@ -76,7 +97,7 @@ func PostsByActor(ctx context.Context, actor *Actor) ([]*Post, error) {
 			"post.authorId, act.type, act.name, act.inbox, act.outbox "+
 			"from Posts post join Actors act on post.authorId = act.id "+
 			"where act.id = ?",
-		actor.ID.String())
+		actor.ID().String())
 	if err != nil {
 		return nil, err
 	}

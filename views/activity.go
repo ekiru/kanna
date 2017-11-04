@@ -7,12 +7,12 @@ import (
 )
 
 type activityStreamsView struct {
-	obj activitystreams.AsObject
+	obj activitystreams.Object
 }
 
 // ActivityStream creates a handler that serializes an object as an
 // Activity Stream and serves it.
-func ActivityStream(obj activitystreams.AsObject) http.Handler {
+func ActivityStream(obj activitystreams.Object) http.Handler {
 	return activityStreamsView{obj}
 }
 

@@ -9,20 +9,6 @@ import (
 // and ActivityPub.
 const ContentType = `application/ld+json; profile="https://www.w3.org/ns/activitystreams"`
 
-// The AsObject interface allows values to be converted to Activity
-// Streams objects in order to be serialized into textual form.
-type AsObject interface {
-	AsObject() *Object
-}
-
-// An Object represents an Object as defined in the Activity Streams
-// specification (https://www.w3.org/TR/activitystreams-core/#object)
-type Object struct {
-	ID    *url.URL
-	Type  string
-	Props map[string]interface{}
-}
-
 // A Link represent a Link as defined in the Activity Streams
 // specification (https://www.w3.org/TR/activitystreams-core/#link)
 type Link struct {
@@ -32,8 +18,8 @@ type Link struct {
 }
 
 // Marshal serializes an object as an Activity Stream.
-func Marshal(obj AsObject) ([]byte, error) {
-	ser, err := serializeValue(obj.AsObject())
+func Marshal(obj Object) ([]byte, error) {
+	ser, err := serializeValue(obj)
 	if err != nil {
 		return nil, err
 	}
@@ -58,13 +44,18 @@ func serializeValue(val interface{}) (interface{}, error) {
 			vals = append(vals, ser)
 		}
 		return vals, nil
-	case *Object:
+	case Object:
 		ser := map[string]interface{}{
-			"id":   val.ID.String(),
-			"type": val.Type,
+			"id": val.ID().String(),
 		}
-		for name, val := range val.Props {
-			serVal, err := serializeValue(val)
+		if types := val.Types(); len(types) == 1 {
+			ser["type"] = types[0]
+		} else {
+			ser["type"] = types
+		}
+		for _, name := range val.Props() {
+			propVal, _ := val.GetProp(name)
+			serVal, err := serializeValue(propVal)
 			if err != nil {
 				return nil, err
 			}

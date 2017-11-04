@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"net/url"
 
-	"github.com/ekiru/kanna/activitystreams"
 	"github.com/ekiru/kanna/db"
 )
 
@@ -28,20 +27,40 @@ type Actor struct {
 	// Person, Group, Organization, and Application.
 	Type string `json:"type"`
 	// ID is the URL which uniquely identifies the Actor.
-	ID *url.URL `json:"id"`
+	id *url.URL `json:"id"`
 }
 
-// AsObject serializes the Actor to an Activity Streams Object.
-func (a *Actor) AsObject() *activitystreams.Object {
-	return &activitystreams.Object{
-		ID:   a.ID,
-		Type: a.Type,
-		Props: map[string]interface{}{
-			"inbox":  a.Inbox,
-			"outbox": a.Outbox,
-			"name":   a.Name,
-		},
+func (a *Actor) ID() *url.URL {
+	return a.id
+}
+
+func (a *Actor) Types() []string {
+	return []string{a.Type}
+}
+
+func (a *Actor) HasType(t string) bool {
+	return a.Type == t
+}
+
+func (a *Actor) GetProp(name string) (interface{}, bool) {
+	switch name {
+	case "id":
+		return a.id, true
+	case "type":
+		return a.Type, true
+	case "name":
+		return a.Name, true
+	case "inbox":
+		return a.Inbox, true
+	case "outbox":
+		return a.Outbox, true
+	default:
+		return nil, false
 	}
+}
+
+func (a *Actor) Props() []string {
+	return []string{"id", "type", "name", "inbox", "outbox"}
 }
 
 // FromRow fills an Actor with the data from a row returned by a
@@ -59,7 +78,7 @@ func (a *Actor) Scanners() map[string]interface{} {
 		"outbox": db.URLScanner{&a.Outbox},
 		"name":   &a.Name,
 		"type":   &a.Type,
-		"id":     db.URLScanner{&a.ID},
+		"id":     db.URLScanner{&a.id},
 	}
 }
 
