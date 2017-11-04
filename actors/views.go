@@ -19,7 +19,7 @@ func AddRoutes(router *routes.Router) {
 
 func actorParam(handler http.Handler) http.Handler {
 	return views.MapParam(handler, "actor", func(ctx context.Context, actorKey interface{}) interface{} {
-		actorId := fmt.Sprintf("http://kanna.example/actor/%s", actorKey.(string))
+		actorId := fmt.Sprintf("https://faew.ink/actor/%s", actorKey.(string))
 		if actor, err := models.ActorById(ctx, actorId); err == nil {
 			return actor
 		} else if err == sql.ErrNoRows {
