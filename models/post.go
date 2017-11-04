@@ -1,63 +1,20 @@
 package models
 
+//go:generate kanna-genmodel -output post_gen.go post.json
+
 import (
 	"context"
 	"database/sql"
-	"net/url"
 
 	"github.com/ekiru/kanna/db"
 )
-
-type Post struct {
-	id        *url.URL
-	Type      string
-	Audience  string
-	Author    *Actor
-	Content   string
-	Published string
-}
-
-func (p *Post) ID() *url.URL {
-	return p.id
-}
-
-func (p *Post) Types() []string {
-	return []string{p.Type}
-}
-
-func (p *Post) HasType(t string) bool {
-	return p.Type == t
-}
-
-func (p *Post) GetProp(name string) (interface{}, bool) {
-	switch name {
-	case "id":
-		return p.id, true
-	case "type":
-		return p.Type, true
-	case "audience":
-		return p.Audience, true
-	case "author":
-		return p.Author, true
-	case "content":
-		return p.Content, true
-	case "published":
-		return p.Published, true
-	default:
-		return nil, false
-	}
-}
-
-func (p *Post) Props() []string {
-	return []string{"id", "type", "audience", "author", "content", "published"}
-}
 
 func (post *Post) FromRow(rows *sql.Rows) error {
 	post.Author = &Actor{}
 	actor := post.Author.Scanners()
 	return rows.Scan(
 		db.URLScanner{&post.id},
-		&post.Type,
+		&post.typ,
 		&post.Audience,
 		&post.Content,
 		&post.Published,

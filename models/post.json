@@ -1,0 +1,10 @@
+{
+	"package": "models",
+	"name": "Post",
+	"properties": {
+		"audience": "string",
+		"author": "*Actor",
+		"content": "string",
+		"published": "string"
+	}
+}

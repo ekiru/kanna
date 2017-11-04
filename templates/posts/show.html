@@ -1,5 +1,5 @@
 {{ define "title" }}
-	{{.Post.Type}} by {{.Post.Author.Name}}</title>
+	{{index .Post.Types 0}} by {{.Post.Author.Name}}</title>
 {{ end }}
 {{ define "content" }}
 	<main>
