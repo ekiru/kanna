@@ -78,9 +78,22 @@ func {{.Name}}ById(ctx context.Context, id string) (*{{.Name}}, error) {
 	if !rows.Next() {
 		return nil, sql.ErrNoRows
 	}
-	if err = model.FromRow(rows); err != nil {
+
+	err = rows.Scan(
+		db.URLScanner{ &model.id },
+		&model.typ,
+{{- range .Properties -}}
+{{- if eq .Type "*url.URL" }}
+		db.URLScanner{ &model.{{.FieldName}} },
+{{- else }}
+		&model.{{.FieldName}},
+{{- end -}}
+{{- end }}
+	)
+	if err != nil {
 		return nil, err
 	}
+
 	return &model, nil
 }
 {{- end }}

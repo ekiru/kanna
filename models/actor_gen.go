@@ -15,9 +15,9 @@ import (
 type Actor struct {
 	id *url.URL
 	typ string
+	Outbox *url.URL
 	Name string
 	Inbox *url.URL
-	Outbox *url.URL
 }
 
 func (model *Actor) ID() *url.URL {
@@ -33,7 +33,7 @@ func (model *Actor) HasType(t string) bool {
 }
 
 func (model *Actor) Props() []string {
-	return []string{ "id", "type", "name","inbox","outbox", }
+	return []string{ "id", "type", "outbox","name","inbox", }
 }
 
 func (model *Actor) GetProp(prop string) (interface{}, bool) {
@@ -42,12 +42,12 @@ func (model *Actor) GetProp(prop string) (interface{}, bool) {
 		return model.id, true
 	case "type":
 		return model.typ, true
+	case "outbox":
+		return model.Outbox, true
 	case "name":
 		return model.Name, true
 	case "inbox":
 		return model.Inbox, true
-	case "outbox":
-		return model.Outbox, true
 	default:
 		return nil, false
 	}
@@ -55,7 +55,7 @@ func (model *Actor) GetProp(prop string) (interface{}, bool) {
 
 func ActorById(ctx context.Context, id string) (*Actor, error) {
 	var model Actor
-	rows, err := db.DB(ctx).QueryContext(ctx, "select id, type, name, inbox, outbox from Actors where id = ?", id)
+	rows, err := db.DB(ctx).QueryContext(ctx, "select id, type, outbox, name, inbox from Actors where id = ?", id)
 	if err != nil {
 		return nil, err
 	}
@@ -63,8 +63,17 @@ func ActorById(ctx context.Context, id string) (*Actor, error) {
 	if !rows.Next() {
 		return nil, sql.ErrNoRows
 	}
-	if err = model.FromRow(rows); err != nil {
+
+	err = rows.Scan(
+		db.URLScanner{ &model.id },
+		&model.typ,
+		db.URLScanner{ &model.Outbox },
+		&model.Name,
+		db.URLScanner{ &model.Inbox },
+	)
+	if err != nil {
 		return nil, err
 	}
+
 	return &model, nil
 }
