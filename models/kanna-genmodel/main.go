@@ -101,35 +101,36 @@ func {{.Name}}ById(ctx context.Context, id string) (*{{.Name}}, error) {
 `))
 
 func main() {
-	outfile := flag.String("output", "", "an optional file in which to save the outpu")
 	flag.Parse()
 	if flag.NArg() != 1 {
 		panic("Usage: kanna-genmodel MODELJSON")
 	}
-	model := parseFile(flag.Arg(0))
-	var output bytes.Buffer
-	if err := fileTemplate.Execute(&output, model); err != nil {
-		panic(err)
-	}
-	if *outfile != "" {
-		if err := ioutil.WriteFile(*outfile, output.Bytes(), 0664); err != nil {
+	models := parseFile(flag.Arg(0))
+	for _, model := range models {
+		var output bytes.Buffer
+		if err := fileTemplate.Execute(&output, model); err != nil {
 			panic(err)
 		}
-	} else {
-		fmt.Print(output.String())
+		if err := ioutil.WriteFile(model.File, output.Bytes(), 0664); err != nil {
+			panic(err)
+		}
 	}
 	//debugPrint(model)
 }
 
 type rawModel struct {
-	Package    string
-	Name       string
-	Table      string
-	Properties map[string]string
+	Package string
+	Types   []struct {
+		File       string
+		Name       string
+		Table      string
+		Properties map[string]string
+	}
 }
 
 type Model struct {
 	Package    string
+	File       string
 	Name       string
 	Table      string
 	Properties []Property
@@ -142,7 +143,7 @@ type Property struct {
 	Type       string
 }
 
-func parseFile(filename string) *Model {
+func parseFile(filename string) []*Model {
 	buf, err := ioutil.ReadFile(filename)
 	if err != nil {
 		panic(err)
@@ -154,25 +155,30 @@ func parseFile(filename string) *Model {
 	return processModel(raw)
 }
 
-func processModel(raw rawModel) *Model {
-	props := make([]Property, 0, len(raw.Properties))
-	for prop, typ := range raw.Properties {
-		props = append(props, Property{
-			FieldName:  strings.Title(prop),
-			Name:       prop,
-			ColumnName: prop,
-			Type:       typ,
+func processModel(raws rawModel) []*Model {
+	var models []*Model
+	for _, raw := range raws.Types {
+		props := make([]Property, 0, len(raw.Properties))
+		for prop, typ := range raw.Properties {
+			props = append(props, Property{
+				FieldName:  strings.Title(prop),
+				Name:       prop,
+				ColumnName: prop,
+				Type:       typ,
+			})
+		}
+		sort.Slice(props, func(i, j int) bool {
+			return props[i].Name < props[j].Name
+		})
+		models = append(models, &Model{
+			Package:    raws.Package,
+			File:       raw.File,
+			Name:       raw.Name,
+			Table:      raw.Table,
+			Properties: props,
 		})
 	}
-	sort.Slice(props, func(i, j int) bool {
-		return props[i].Name < props[j].Name
-	})
-	return &Model{
-		Package:    raw.Package,
-		Name:       raw.Name,
-		Table:      raw.Table,
-		Properties: props,
-	}
+	return models
 }
 
 func debugPrint(m *Model) {

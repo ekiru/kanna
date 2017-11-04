@@ -1,0 +1,25 @@
+{
+	"package": "models",
+	"types": [
+		{
+			"file": "actor_gen.go",
+			"name": "Actor",
+			"table": "Actors",
+			"properties": {
+				"name": "string",
+				"inbox": "*url.URL",
+				"outbox": "*url.URL"
+			}
+		},
+		{
+			"file": "post_gen.go",
+			"name": "Post",
+			"properties": {
+				"audience": "string",
+				"author": "*Actor",
+				"content": "string",
+				"published": "string"
+			}
+		}
+	]
+}

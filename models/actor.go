@@ -1,7 +1,5 @@
 package models
 
-//go:generate kanna-genmodel -output actor_gen.go actor.json
-
 import (
 	"github.com/ekiru/kanna/db"
 )

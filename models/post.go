@@ -1,7 +1,5 @@
 package models
 
-//go:generate kanna-genmodel -output post_gen.go post.json
-
 import (
 	"context"
 	"database/sql"
