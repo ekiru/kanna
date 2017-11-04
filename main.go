@@ -16,7 +16,7 @@ import (
 
 func main() {
 	routes := buildRoutes()
-	log.Fatal(http.ListenAndServe(":9123", routes))
+	log.Fatal(http.ListenAndServe("localhost:9123", routes))
 }
 
 func buildRoutes() http.Handler {
