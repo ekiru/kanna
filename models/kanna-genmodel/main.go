@@ -11,7 +11,8 @@ import (
 	"text/template"
 )
 
-var fileTemplate = template.Must(template.New("model.go").Parse(`
+var fileTemplate = template.Must(template.New("model.go").Option("missingkey=error").Parse(`
+{{- with $model := . -}}
 package {{.Package}}
 
 import (
@@ -69,9 +70,17 @@ func (model *{{.Name}}) GetProp(prop string) (interface{}, bool) {
 {{ if .Table -}}
 func {{.Name}}ById(ctx context.Context, id string) (*{{.Name}}, error) {
 	var model {{.Name}}
-	rows, err := db.DB(ctx).QueryContext(ctx, "select id, type {{- range .Properties -}}
-		, {{ .ColumnName }}
-	{{- end }} from {{.Table}} where id = ?", id)
+	rows, err := db.DB(ctx).QueryContext(ctx, "select {{ $model.Table }}.id, {{ $model.Table }}.type {{- range .Properties -}}
+		, {{ $model.Table }}.{{ .ColumnName }}
+	{{- end -}}
+	{{- range $join := .Joins -}}
+		, {{ $join.Model.Table }}.type
+		{{- range $join.Model.Properties -}}
+			, {{ $join.Model.Table }}.{{ .ColumnName }}
+		{{- end -}}
+	{{- end }} from {{.Table}} {{- range .Joins -}}
+		{{- ""}} join {{ .Model.Table }} on {{ $model.Table }}.{{ .LinkColumn }} = {{ .Model.Table }}.id
+	{{- end }} where {{ .Table }}.id = ?", id)
 	if err != nil {
 		return nil, err
 	}
@@ -80,14 +89,32 @@ func {{.Name}}ById(ctx context.Context, id string) (*{{.Name}}, error) {
 		return nil, sql.ErrNoRows
 	}
 
+{{- range .Joins }}
+	model.{{ .LinkField }} = new({{ .Model.Name }})
+{{- end }}
+
 	err = rows.Scan(
 		db.URLScanner{ &model.id },
 		&model.typ,
+
 {{- range .Properties -}}
-{{- if eq .Type "*url.URL" }}
+{{- if .LinksTo }}
+		db.URLScanner{ &model.{{.FieldName}}.id },
+{{- else if eq .Type "*url.URL" }}
 		db.URLScanner{ &model.{{.FieldName}} },
 {{- else }}
 		&model.{{.FieldName}},
+{{- end -}}
+{{- end -}}
+
+{{- range $join := .Joins }}
+		&model.{{$join.LinkField}}.typ,
+{{- range $join.Model.Properties -}}
+{{- if eq .Type "*url.URL" }}
+		db.URLScanner{ &model.{{$join.LinkField}}.{{.FieldName}} },
+{{- else }}
+		&model.{{$join.LinkField}}.{{.FieldName}},
+{{- end -}}
 {{- end -}}
 {{- end }}
 	)
@@ -97,6 +124,8 @@ func {{.Name}}ById(ctx context.Context, id string) (*{{.Name}}, error) {
 
 	return &model, nil
 }
+{{- end }}
+
 {{- end }}
 `))
 
@@ -115,7 +144,6 @@ func main() {
 			panic(err)
 		}
 	}
-	//debugPrint(model)
 }
 
 type rawModel struct {
@@ -124,7 +152,7 @@ type rawModel struct {
 		File       string
 		Name       string
 		Table      string
-		Properties map[string]string
+		Properties map[string]interface{}
 	}
 }
 
@@ -134,6 +162,7 @@ type Model struct {
 	Name       string
 	Table      string
 	Properties []Property
+	Joins      []ModelJoin
 }
 
 type Property struct {
@@ -141,6 +170,13 @@ type Property struct {
 	Name       string
 	ColumnName string
 	Type       string
+	LinksTo    string
+}
+
+type ModelJoin struct {
+	LinkColumn string
+	LinkField  string
+	Model      *Model
 }
 
 func parseFile(filename string) []*Model {
@@ -157,26 +193,61 @@ func parseFile(filename string) []*Model {
 
 func processModel(raws rawModel) []*Model {
 	var models []*Model
+	modelMap := make(map[string]*Model)
 	for _, raw := range raws.Types {
 		props := make([]Property, 0, len(raw.Properties))
-		for prop, typ := range raw.Properties {
-			props = append(props, Property{
-				FieldName:  strings.Title(prop),
-				Name:       prop,
-				ColumnName: prop,
-				Type:       typ,
-			})
+		for name, desc := range raw.Properties {
+			var prop Property
+			prop.Name = name
+			prop.ColumnName = prop.Name
+			prop.FieldName = strings.Title(prop.Name)
+			switch desc := desc.(type) {
+			case string:
+				prop.FieldName = strings.Title(name)
+				prop.Name = name
+				prop.ColumnName = name
+				prop.Type = desc
+			case map[string]interface{}:
+				if col, found := desc["column_name"]; found {
+					prop.ColumnName = col.(string)
+				}
+				if linksTo, found := desc["links_to"]; found {
+					prop.LinksTo = linksTo.(string)
+				}
+				prop.Type = desc["type"].(string)
+			default:
+				panic("invalid property descriptor")
+			}
+			props = append(props, prop)
 		}
 		sort.Slice(props, func(i, j int) bool {
 			return props[i].Name < props[j].Name
 		})
-		models = append(models, &Model{
+		model := &Model{
 			Package:    raws.Package,
 			File:       raw.File,
 			Name:       raw.Name,
 			Table:      raw.Table,
 			Properties: props,
-		})
+			Joins:      nil,
+		}
+		modelMap[model.Name] = model
+		models = append(models, model)
+	}
+	for _, model := range models {
+		for _, prop := range model.Properties {
+			if prop.LinksTo != "" {
+				linkedModel := modelMap[prop.LinksTo]
+				if linkedModel == nil {
+					panic("missing linked model " + prop.LinksTo)
+				}
+				model.Joins = append(model.Joins, ModelJoin{
+					LinkColumn: prop.ColumnName,
+					LinkField:  prop.FieldName,
+					Model:      linkedModel,
+				})
+			}
+		}
 	}
 	return models
 }

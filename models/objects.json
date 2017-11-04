@@ -14,9 +14,14 @@
 		{
 			"file": "post_gen.go",
 			"name": "Post",
+			"table": "Posts",
 			"properties": {
 				"audience": "string",
-				"author": "*Actor",
+				"author": {
+					"type": "*Actor",
+					"column_name": "authorId",
+					"links_to": "Actor"
+				},
 				"content": "string",
 				"published": "string"
 			}

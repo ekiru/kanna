@@ -1,4 +1,3 @@
-
 package models
 
 import (
@@ -55,7 +54,7 @@ func (model *Actor) GetProp(prop string) (interface{}, bool) {
 
 func ActorById(ctx context.Context, id string) (*Actor, error) {
 	var model Actor
-	rows, err := db.DB(ctx).QueryContext(ctx, "select id, type, inbox, name, outbox from Actors where id = ?", id)
+	rows, err := db.DB(ctx).QueryContext(ctx, "select Actors.id, Actors.type, Actors.inbox, Actors.name, Actors.outbox from Actors where Actors.id = ?", id)
 	if err != nil {
 		return nil, err
 	}
