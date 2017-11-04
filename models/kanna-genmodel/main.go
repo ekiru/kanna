@@ -14,7 +14,14 @@ var fileTemplate = template.Must(template.New("model.go").Parse(`
 package {{.Package}}
 
 import (
+	{{ if .Table }}
+	"context"
+	"database/sql"
+	{{ end }}
 	"net/url"
+	{{ if .Table }}
+	"github.com/ekiru/kanna/db"
+	{{ end }}
 )
 
 type {{.Name}} struct {
@@ -57,6 +64,26 @@ func (model *{{.Name}}) GetProp(prop string) (interface{}, bool) {
 		return nil, false
 	}
 }
+
+{{ if .Table -}}
+func {{.Name}}ById(ctx context.Context, id string) (*{{.Name}}, error) {
+	var model {{.Name}}
+	rows, err := db.DB(ctx).QueryContext(ctx, "select id, type {{- range .Properties -}}
+		, {{ .ColumnName }}
+	{{- end }} from {{.Table}} where id = ?", id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	if !rows.Next() {
+		return nil, sql.ErrNoRows
+	}
+	if err = model.FromRow(rows); err != nil {
+		return nil, err
+	}
+	return &model, nil
+}
+{{- end }}
 `))
 
 func main() {
@@ -83,19 +110,22 @@ func main() {
 type rawModel struct {
 	Package    string
 	Name       string
+	Table      string
 	Properties map[string]string
 }
 
 type Model struct {
 	Package    string
 	Name       string
+	Table      string
 	Properties []Property
 }
 
 type Property struct {
-	FieldName string
-	Name      string
-	Type      string
+	FieldName  string
+	Name       string
+	ColumnName string
+	Type       string
 }
 
 func parseFile(filename string) *Model {
@@ -114,14 +144,16 @@ func processModel(raw rawModel) *Model {
 	props := make([]Property, 0, len(raw.Properties))
 	for prop, typ := range raw.Properties {
 		props = append(props, Property{
-			FieldName: strings.Title(prop),
-			Name:      prop,
-			Type:      typ,
+			FieldName:  strings.Title(prop),
+			Name:       prop,
+			ColumnName: prop,
+			Type:       typ,
 		})
 	}
 	return &Model{
 		Package:    raw.Package,
 		Name:       raw.Name,
+		Table:      raw.Table,
 		Properties: props,
 	}
 }

@@ -2,7 +2,9 @@
 package models
 
 import (
+	
 	"net/url"
+	
 )
 
 type Post struct {
@@ -48,3 +50,5 @@ func (model *Post) GetProp(prop string) (interface{}, bool) {
 		return nil, false
 	}
 }
+
+
